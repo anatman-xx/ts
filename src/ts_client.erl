@@ -3,12 +3,12 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0]).
+-export([start_link/3]).
 
 %% gen_fsm callbacks
 -export([init/1,
-         state_name/2,
-         state_name/3,
+         running_test/2,
+	 finished/2,
          handle_event/3,
          handle_sync_event/4,
          handle_info/3,
@@ -17,29 +17,39 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {}).
+-record(state, {url, count, intval}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-start_link() ->
-        gen_fsm:start_link({local, ?SERVER}, ?MODULE, [], []).
+start_link(Url, Count, Intval) when is_integer(Count), is_integer(Intval) ->
+        gen_fsm:start_link(?MODULE, [Url, Count, Intval], []).
 
 %%%===================================================================
 %%% gen_fsm callbacks
 %%%===================================================================
-init([]) ->
-        {ok, state_name, #state{}}.
+init([Url, Count, Intval]) ->
+	inets:start(),
+        {ok, running_test, #state{url = Url, count = Count, intval = Intval}, 0}.
 
-state_name(_Event, State) ->
-        {next_state, state_name, State}.
+running_test(timeout, State) when State#state.count > 0 ->
+	case httpc:request(State#state.url) of
+		{ok, {_Status, _Header, _Data}} ->
+			ok;
+		_ ->
+			io:format("error~n"),
+			ok
+	end,
+        {next_state, running_test, State#state{count = State#state.count - 1}, State#state.intval};
 
-state_name(_Event, _From, State) ->
-        Reply = ok,
-        {reply, Reply, state_name, State}.
+running_test(timeout, State) when State#state.count =< 0 ->
+	{next_state, finished, State}.
+
+finished(_Event, State) ->
+	{next_state, finished, State}.
 
 handle_event(_Event, StateName, State) ->
-        {next_state, StateName, State}.
+        {next_state, ok, StateName, State}.
 
 handle_sync_event(_Event, _From, StateName, State) ->
         Reply = ok,
@@ -57,6 +67,5 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
 
 
