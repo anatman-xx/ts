@@ -33,15 +33,17 @@ init([Url, Count, Intval]) ->
         {ok, running_test, #state{url = Url, count = Count, intval = Intval}, 0}.
 
 running_test(timeout, State) when State#state.count > 0 ->
+	{BeginA, BeginB, BeginC} = os:timestamp(),
 	case httpc:request(State#state.url) of
-		{ok, {_Status, _Header, _Data}} ->
+		{ok, {{_, Status, _}, _Header, _Data}} ->
+			{EndA, EndB, EndC} = os:timestamp(),
+			ts_server:report_test_result({success, {EndA - BeginA, EndB - BeginB, EndC - BeginC}}),
 			ok;
 		_ ->
-			io:format("error~n"),
+			ts_server:report_test_result({error}),
 			ok
 	end,
         {next_state, running_test, State#state{count = State#state.count - 1}, State#state.intval};
-
 running_test(timeout, State) when State#state.count =< 0 ->
 	{next_state, finished, State}.
 
@@ -67,5 +69,4 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
 
