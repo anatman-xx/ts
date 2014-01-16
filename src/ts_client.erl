@@ -35,7 +35,7 @@ init([Url, Count, Intval]) ->
 running_test(timeout, State) when State#state.count > 0 ->
 	{BeginA, BeginB, BeginC} = os:timestamp(),
 	case httpc:request(State#state.url) of
-		{ok, {{_, Status, _}, _Header, _Data}} ->
+		{ok, {{_, _Status, _}, _Header, _Data}} ->
 			{EndA, EndB, EndC} = os:timestamp(),
 			ts_server:report_test_result({success, {EndA - BeginA, EndB - BeginB, EndC - BeginC}}),
 			ok;
