@@ -22,7 +22,6 @@ start_link() ->
 start_client(1, Args) when is_list(Args) ->
 	supervisor:start_child(?SERVER, Args),
 	ok;
-
 start_client(ClientNum, Args) when is_integer(ClientNum), is_list(Args) ->
 	supervisor:start_child(?SERVER, Args),
 	start_client(ClientNum - 1, Args).
@@ -32,7 +31,6 @@ stop_all_clients() ->
 
 stop_all_clients([]) ->
 	ok;
-
 stop_all_clients([{_Id, Pid, _Type, _Module}|T]) ->
 	supervisor:terminate_child(?SERVER, Pid),
 	stop_all_clients(T).
