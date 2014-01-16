@@ -7,7 +7,9 @@
          stop/0,
          start_test/1,
          start_test/2,
-         stop_test/0]).
+         stop_test/0,
+         report_test_result/1,
+         get_test_result/0]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -67,7 +69,7 @@ handle_call({get_test_result}, _From, State) ->
 handle_call(_, _From, State) ->
 	{reply, ok, State}.
 
-handle_cast({report_test_result, {success, {TimeDeltaA, TimeDeltaB, TimeDeltaC}}}, State) ->
+handle_cast({report_test_result, {success, {_TimeDeltaA, TimeDeltaB, _TimeDeltaC}}}, State) ->
 	if
 		TimeDeltaB >= 200 ->
 			{noreply, State#state{result = State#state.result#result{success = State#state.result#result.success + 1}}};
@@ -75,10 +77,9 @@ handle_cast({report_test_result, {success, {TimeDeltaA, TimeDeltaB, TimeDeltaC}}
 			{noreply, State#state{result = State#state.result#result{timeout = State#state.result#result.timeout + 1}}};
 		true ->
 			{noreply, State}
-	end.
-
+	end;
 handle_cast({report_test_result, {error}}, State) ->
-	{noreply, State#state{result = }};
+	{noreply, State#state{result = State#state.result#result{error = State#state.result#result.error + 1}}};
 handle_cast(_Msg, State) ->
         {noreply, State}.
 
