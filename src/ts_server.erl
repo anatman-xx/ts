@@ -24,8 +24,8 @@
 -define(DEFAULT_CLIENT_NUM, 10).
 -define(MAX_CLIENT_NUM, 1024).
 
--record(state, {sup, result}).
--record(result, {success, timeout, error}).
+-record(result, {success = 0, timeout = 0, error = 0}).
+-record(state, {result = #result{}}).
 
 %%%===================================================================
 %%% API
@@ -58,8 +58,7 @@ flush_test_result() ->
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
-	{ok, SupRef} = ts_client_sup:start_link(),
-	{ok, #state{sup = SupRef, result = #result{success = 0, timeout = 0, error = 0}}}.
+	{ok, #state{}}.
 
 handle_call({stop}, _From, State) ->
 	{stop, normal, ok, State};
@@ -71,7 +70,7 @@ handle_call({stop_test}, _From, State) ->
 handle_call({get_test_result}, _From, State) ->
 	{reply, State#state.result, State};
 handle_call({flush_test_result}, _From, State) ->
-	{reply, State#state{result = #result{success = 0, timeout = 0, error = 0}}}.
+	{reply, State#state{result = #result{success = 0, timeout = 0, error = 0}}};
 handle_call(_, _From, State) ->
 	{reply, ok, State}.
 
