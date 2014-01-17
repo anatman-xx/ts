@@ -50,6 +50,9 @@ report_test_result(TestResult) ->
 get_test_result() ->
 	gen_server:call(?SERVER, {get_test_result}).
 
+flush_test_result() ->
+	gen_server:call(?SERVER, {flush_test_result}).
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -66,6 +69,8 @@ handle_call({stop_test}, _From, State) ->
         {reply, ok, State};
 handle_call({get_test_result}, _From, State) ->
 	{reply, State#state.result, State};
+handle_call({flush_test_result}, _From, State) ->
+	{reply, State#state{result = #result{success = 0, timeout = 0, error = 0}}}.
 handle_call(_, _From, State) ->
 	{reply, ok, State}.
 
