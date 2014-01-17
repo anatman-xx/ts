@@ -8,7 +8,6 @@
 %% gen_fsm callbacks
 -export([init/1,
          running_test/2,
-	 finished/2,
          handle_event/3,
          handle_sync_event/4,
          handle_info/3,
@@ -34,20 +33,22 @@ init([Url, Count, Intval]) ->
 running_test(timeout, State) when State#state.count > 0 ->
 	{BeginA, BeginB, BeginC} = os:timestamp(),
 	case httpc:request(State#state.url) of
-		{ok, {{_, _Status, _}, _Header, _Data}} ->
-			{EndA, EndB, EndC} = os:timestamp(),
-			ts_server:report_test_result({success, {EndA - BeginA, EndB - BeginB, EndC - BeginC}}),
-			ok;
+		{ok, {{_, Status, _}, _Header, _Data}} ->
+			if
+				Status == 200 ->
+					{EndA, EndB, EndC} = os:timestamp(),
+					ts_server:report_test_result({success, {EndA - BeginA, EndB - BeginB, EndC - BeginC}}),
+					ok;
+				Status /= 200 ->
+					ts_server:report_test_result({error})
+			end;
 		_ ->
 			ts_server:report_test_result({error}),
 			ok
 	end,
         {next_state, running_test, State#state{count = State#state.count - 1}, State#state.intval};
 running_test(timeout, State) when State#state.count =< 0 ->
-	{next_state, finished, State}.
-
-finished(_Event, State) ->
-	{next_state, finished, State}.
+	{stop, normal, State}.
 
 handle_event(_Event, StateName, State) ->
         {next_state, ok, StateName, State}.
