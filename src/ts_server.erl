@@ -65,15 +65,15 @@ handle_call({start_test, ClientNum, Args}, _From, State) ->
 handle_call({stop_test}, _From, State) ->
         {reply, ok, State};
 handle_call({get_test_result}, _From, State) ->
-	{reply, State#state.result};
+	{reply, State#state.result, State};
 handle_call(_, _From, State) ->
 	{reply, ok, State}.
 
 handle_cast({report_test_result, {success, {_TimeDeltaA, TimeDeltaB, _TimeDeltaC}}}, State) ->
 	if
-		TimeDeltaB >= 200 ->
-			{noreply, State#state{result = State#state.result#result{success = State#state.result#result.success + 1}}};
 		TimeDeltaB < 200 ->
+			{noreply, State#state{result = State#state.result#result{success = State#state.result#result.success + 1}}};
+		TimeDeltaB >= 200 ->
 			{noreply, State#state{result = State#state.result#result{timeout = State#state.result#result.timeout + 1}}};
 		true ->
 			{noreply, State}
