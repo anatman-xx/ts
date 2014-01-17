@@ -29,7 +29,6 @@ start_link(Url, Count, Intval) when is_integer(Count), is_integer(Intval) ->
 %%% gen_fsm callbacks
 %%%===================================================================
 init([Url, Count, Intval]) ->
-	inets:start(),
         {ok, running_test, #state{url = Url, count = Count, intval = Intval}, 0}.
 
 running_test(timeout, State) when State#state.count > 0 ->

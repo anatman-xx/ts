@@ -9,7 +9,8 @@
          start_test/2,
          stop_test/0,
          report_test_result/1,
-         get_test_result/0]).
+         get_test_result/0,
+         flush_test_result/0]).
 
 %% gen_server callbacks
 -export([init/1,
